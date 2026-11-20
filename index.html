@@ -1,0 +1,373 @@
+<!doctype html>
+<html lang="ur" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#12352B">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon.svg">
+<link rel="apple-touch-icon" href="icon-192.png">
+<title>سواری</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;700&family=Noto+Nastaliq+Urdu:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#12352B; --leaf:#1F8A4C; --mint:#DDF3E5; --saffron:#F2B01E;
+  --bg:#F2F6F3; --card:#fff; --text:#17231D; --muted:#66756C; --line:#D9E3DC;
+  --danger:#C2402F;
+}
+@media (prefers-color-scheme:dark){
+  :root{--bg:#0E1A15;--card:#16251E;--text:#EAF3ED;--muted:#93A79B;--line:#26382F;--mint:#1B3A2A}
+}
+*{box-sizing:border-box;margin:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%}
+body{font-family:'Baloo 2','Noto Nastaliq Urdu',system-ui,sans-serif;background:var(--bg);color:var(--text);overflow:hidden}
+html[lang=ur] body{font-family:'Noto Nastaliq Urdu','Baloo 2',system-ui,sans-serif;line-height:2}
+button{font:inherit;color:inherit;border:0;background:none;cursor:pointer}
+button:focus-visible,input:focus-visible{outline:3px solid var(--saffron);outline-offset:2px}
+
+.screen{position:fixed;inset:0;display:none;flex-direction:column;padding-top:env(safe-area-inset-top)}
+.screen.on{display:flex}
+
+/* map */
+#map{position:absolute;inset:0;z-index:0}
+.menu-btn{position:absolute;z-index:500;top:calc(env(safe-area-inset-top) + 12px);inset-inline-start:12px;width:48px;height:48px;border-radius:50%;background:var(--card);box-shadow:0 2px 10px #0003;display:grid;place-items:center}
+.menu-btn span{display:block;width:20px;height:2px;background:var(--text);box-shadow:0 6px 0 var(--text),0 -6px 0 var(--text)}
+.locate{position:absolute;z-index:500;inset-inline-end:12px;top:calc(env(safe-area-inset-top) + 12px);height:48px;padding:0 16px;border-radius:24px;background:var(--card);box-shadow:0 2px 10px #0003;font-weight:700;color:var(--leaf)}
+
+/* bottom sheet */
+.sheet{position:absolute;z-index:600;inset-inline:0;bottom:0;background:var(--card);border-radius:24px 24px 0 0;box-shadow:0 -6px 24px #0003;padding:16px 16px calc(16px + env(safe-area-inset-bottom));max-height:72vh;overflow:auto}
+.route{border:2px solid var(--leaf);border-radius:20px;padding:6px 14px}
+.row{display:flex;align-items:center;gap:12px;min-height:48px}
+.dot{width:16px;height:16px;border-radius:50%;flex:none}
+.dot.a{background:var(--leaf)} .dot.b{background:#7B4DE0}
+.row input{flex:1;min-width:0;border:0;background:none;color:inherit;font:inherit;padding:6px 0}
+.row + .row{border-top:1px solid var(--line)}
+.row .txt{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hint{color:var(--muted);font-size:.9rem;margin:8px 4px 0}
+
+.vehicles{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:14px 0}
+.veh{border:2px solid var(--line);border-radius:18px;padding:10px 4px;text-align:center;background:var(--bg)}
+.veh svg{width:56px;height:40px}
+.veh b{display:block}
+.veh small{color:var(--muted)}
+.veh[aria-pressed=true]{border-color:var(--leaf);background:var(--mint)}
+
+.fare{display:flex;justify-content:space-between;align-items:baseline;margin:4px 4px 10px}
+.fare strong{font-size:1.6rem;color:var(--leaf)}
+.when{display:flex;align-items:center;gap:8px;margin:0 4px 12px;color:var(--muted)}
+.when input{flex:1;border:2px solid var(--line);border-radius:12px;padding:6px 10px;background:var(--bg);color:var(--text);font:inherit}
+
+.cta{width:100%;height:56px;border-radius:28px;background:var(--leaf);color:#fff;font-weight:700;font-size:1.15rem}
+.cta:disabled{background:var(--line);color:var(--muted)}
+
+/* drawer */
+.scrim{position:fixed;inset:0;background:#0007;z-index:900;display:none}
+.scrim.on{display:block}
+.drawer{position:fixed;z-index:950;top:0;bottom:0;inset-inline-start:0;width:78%;max-width:320px;background:var(--ink);color:#fff;transform:translateX(105%);transition:transform .22s ease;display:flex;flex-direction:column;padding-top:env(safe-area-inset-top)}
+html[dir=ltr] .drawer{transform:translateX(-105%)}
+.drawer.on{transform:none}
+.profile{padding:28px 16px 18px;text-align:center;background:#0C261F}
+.avatar{width:84px;height:84px;border-radius:50%;background:var(--saffron);color:var(--ink);display:grid;place-items:center;margin:0 auto 8px;font-weight:700;font-size:1.6rem}
+.drawer nav button{display:block;width:100%;text-align:start;padding:14px 20px;border-bottom:1px solid #ffffff22;font-size:1.1rem}
+.drawer nav button:hover{background:#ffffff14}
+.lang{margin-top:auto;padding:20px;display:flex;align-items:center;justify-content:center;gap:12px}
+.lang button{padding:8px 18px;border-radius:20px;border:2px solid #ffffff55}
+.lang button[aria-pressed=true]{background:var(--saffron);color:var(--ink);border-color:var(--saffron);font-weight:700}
+
+/* bookings */
+.top{display:flex;align-items:center;gap:8px;padding:8px 12px;background:var(--card);border-bottom:2px solid var(--leaf)}
+.top h1{font-size:1.2rem;flex:1;text-align:center;font-weight:500}
+.back{width:48px;height:48px;font-size:1.6rem;color:var(--leaf)}
+html[dir=rtl] .back{transform:scaleX(-1)}
+.tabs{display:grid;grid-template-columns:repeat(3,1fr)}
+.tabs button{padding:12px 4px;background:var(--line);color:var(--muted)}
+.tabs button[aria-selected=true]{background:var(--leaf);color:#fff;font-weight:700}
+.list{flex:1;overflow:auto;padding:12px}
+.empty{text-align:center;color:var(--muted);margin-top:22vh}
+.empty svg{width:140px;opacity:.6}
+.empty .cta{width:auto;padding:0 32px;margin-top:14px}
+.bk{background:var(--card);border-radius:18px;padding:14px;margin-bottom:12px;border:1px solid var(--line)}
+.bk .head{display:flex;justify-content:space-between;font-weight:700}
+.bk p{color:var(--muted);margin-top:4px}
+.bk .acts{display:flex;gap:8px;margin-top:10px}
+.bk .acts button{flex:1;height:44px;border-radius:22px;border:2px solid var(--leaf);color:var(--leaf);font-weight:700}
+.bk .acts .x{border-color:var(--danger);color:var(--danger)}
+
+.page{flex:1;padding:24px;overflow:auto}
+.page .big{font-size:2.2rem;color:var(--leaf);font-weight:700;margin:8px 0 16px}
+.page a{color:var(--leaf);font-weight:700}
+.toast{position:fixed;z-index:2000;inset-inline:16px;bottom:calc(24px + env(safe-area-inset-bottom));background:var(--ink);color:#fff;padding:14px 18px;border-radius:16px;display:none;text-align:center}
+.toast.on{display:block}
+@media (prefers-reduced-motion:reduce){.drawer{transition:none}}
+</style>
+</head>
+<body>
+
+<!-- HOME -->
+<section class="screen on" id="home" aria-label="home">
+  <div id="map" aria-label="map"></div>
+  <button class="menu-btn" id="openMenu" aria-label="menu"><span></span></button>
+  <button class="locate" id="locate" data-t="myLocation"></button>
+
+  <div class="sheet">
+    <div class="route">
+      <div class="row"><i class="dot a"></i><div class="txt" id="pickTxt"></div></div>
+      <div class="row"><i class="dot b"></i><input id="dropIn" enterkeyhint="search" data-tp="dropPlaceholder"></div>
+    </div>
+    <p class="hint" data-t="tapHint"></p>
+
+    <div class="vehicles" id="vehicles" role="group"></div>
+
+    <div class="fare"><span data-t="fare"></span><strong id="fareVal">—</strong></div>
+    <label class="when"><span data-t="when"></span><input type="datetime-local" id="whenIn"></label>
+    <button class="cta" id="book" data-t="book" disabled></button>
+  </div>
+</section>
+
+<!-- BOOKINGS -->
+<section class="screen" id="bookings">
+  <div class="top"><button class="back" data-go="home" aria-label="back">←</button><h1 data-t="bookings"></h1><span style="width:48px"></span></div>
+  <div class="tabs" role="tablist" id="tabs">
+    <button role="tab" data-tab="scheduled" data-t="scheduled"></button>
+    <button role="tab" data-tab="progress" data-t="progress"></button>
+    <button role="tab" data-tab="done" data-t="done"></button>
+  </div>
+  <div class="list" id="bkList"></div>
+</section>
+
+<!-- WALLET -->
+<section class="screen" id="wallet">
+  <div class="top"><button class="back" data-go="home" aria-label="back">←</button><h1 data-t="wallet"></h1><span style="width:48px"></span></div>
+  <div class="page"><p data-t="balance"></p><div class="big">Rs. 0</div><p data-t="walletNote"></p></div>
+</section>
+
+<!-- CONTACT -->
+<section class="screen" id="contact">
+  <div class="top"><button class="back" data-go="home" aria-label="back">←</button><h1 data-t="contact"></h1><span style="width:48px"></span></div>
+  <div class="page">
+    <p data-t="contactNote"></p><br>
+    <!-- اپنا نمبر یہاں لکھیں: 92300XXXXXXX -->
+    <a id="wa" href="https://wa.me/92300XXXXXXX" target="_blank" rel="noopener">WhatsApp</a>
+  </div>
+</section>
+
+<div class="scrim" id="scrim"></div>
+<aside class="drawer" id="drawer" aria-label="menu">
+  <div class="profile"><div class="avatar">S</div><div data-t="guest"></div></div>
+  <nav>
+    <button data-go="home" data-t="home"></button>
+    <button data-go="bookings" data-t="bookings"></button>
+    <button data-go="wallet" data-t="wallet"></button>
+    <button data-go="contact" data-t="contact"></button>
+  </nav>
+  <div class="lang">
+    <button id="enBtn">English</button>
+    <button id="urBtn">اردو</button>
+  </div>
+</aside>
+<div class="toast" id="toast" role="status"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script>
+/* ============ ترتیبات (یہاں سے کرایہ بدلیں) ============ */
+const VEHICLES = {
+  rickshaw: { base: 80,  perKm: 35, icon: 'rickshaw' },
+  chingchi: { base: 60,  perKm: 25, icon: 'chingchi' },
+  loader:   { base: 300, perKm: 70, icon: 'loader'   }
+};
+const DEFAULT_CENTER = [31.5204, 74.3587]; // لاہور
+
+/* ============ زبانیں ============ */
+const T = {
+  ur: {
+    myLocation:'میری جگہ', tapHint:'ڈراپ آف کے لیے نقشے پر ٹیپ کریں یا جگہ کا نام لکھیں',
+    dropPlaceholder:'ڈراپ آف لکھیں', fare:'اندازاً کرایہ', when:'وقت (اختیاری)', book:'بک کریں',
+    bookings:'بکنگز', scheduled:'طے شدہ', progress:'جاری', done:'مکمل', wallet:'والٹ', contact:'رابطہ', home:'ہوم',
+    guest:'مہمان', rickshaw:'رکشا', chingchi:'چنگ چی', loader:'لوڈر',
+    noBooking:'کوئی بکنگ نہیں', bookNow:'ابھی بک کریں', pickup:'پک اپ', locating:'جگہ تلاش ہو رہی ہے…',
+    booked:'بکنگ ہو گئی', complete:'مکمل کریں', cancel:'منسوخ', balance:'موجودہ بیلنس',
+    walletNote:'ادائیگی ابھی نقد ہے۔ آن لائن والٹ بعد میں شامل ہو گا۔',
+    contactNote:'کسی بھی مدد کے لیے ہم سے رابطہ کریں۔', notFound:'جگہ نہیں ملی', pickDrop:'پہلے ڈراپ آف منتخب کریں',
+    km:'کلومیٹر'
+  },
+  en: {
+    myLocation:'My location', tapHint:'Tap the map or type a place to set the dropoff',
+    dropPlaceholder:'Enter dropoff', fare:'Estimated fare', when:'Time (optional)', book:'Book',
+    bookings:'Bookings', scheduled:'Scheduled', progress:'In progress', done:'Completed', wallet:'Wallet', contact:'Contact us', home:'Home',
+    guest:'Guest', rickshaw:'Rickshaw', chingchi:'Chingchi', loader:'Loader',
+    noBooking:'No booking', bookNow:'Book now', pickup:'Pickup', locating:'Finding your location…',
+    booked:'Booking placed', complete:'Complete', cancel:'Cancel', balance:'Current balance',
+    walletNote:'Payment is cash for now. Online wallet comes later.',
+    contactNote:'Contact us for any help.', notFound:'Place not found', pickDrop:'Choose a dropoff first',
+    km:'km'
+  }
+};
+let lang = localStorage.getItem('lang') || 'ur';
+const t = k => T[lang][k] || k;
+
+/* ============ سادہ آئیکن ============ */
+const ICONS = {
+  rickshaw:`<svg viewBox="0 0 64 44"><path d="M8 30V14l10-6h24l8 12v10z" fill="#F2B01E"/><rect x="14" y="14" width="18" height="10" fill="#fff" opacity=".7"/><circle cx="16" cy="34" r="6" fill="#222"/><circle cx="48" cy="34" r="6" fill="#222"/></svg>`,
+  chingchi:`<svg viewBox="0 0 64 44"><rect x="6" y="10" width="36" height="20" rx="4" fill="#1F8A4C"/><path d="M42 30V18h10l6 12z" fill="#12352B"/><rect x="10" y="14" width="26" height="8" fill="#fff" opacity=".7"/><circle cx="16" cy="34" r="6" fill="#222"/><circle cx="46" cy="34" r="6" fill="#222"/></svg>`,
+  loader:`<svg viewBox="0 0 64 44"><rect x="4" y="8" width="34" height="22" rx="2" fill="#7B4DE0"/><path d="M38 30V16h12l8 10v4z" fill="#12352B"/><circle cx="14" cy="34" r="6" fill="#222"/><circle cx="48" cy="34" r="6" fill="#222"/></svg>`
+};
+
+/* ============ حالت ============ */
+let vehicle = 'rickshaw';
+let pickup = null, drop = null;
+let bookings = JSON.parse(localStorage.getItem('bookings') || '[]');
+let tab = 'progress';
+const $ = s => document.querySelector(s);
+const $$ = s => [...document.querySelectorAll(s)];
+const save = () => localStorage.setItem('bookings', JSON.stringify(bookings));
+
+function toast(msg){ const el=$('#toast'); el.textContent=msg; el.classList.add('on'); setTimeout(()=>el.classList.remove('on'),2200); }
+
+/* ============ زبان لاگو کریں ============ */
+function applyLang(){
+  document.documentElement.lang = lang;
+  document.documentElement.dir = lang==='ur' ? 'rtl' : 'ltr';
+  $$('[data-t]').forEach(e=> e.textContent = t(e.dataset.t));
+  $$('[data-tp]').forEach(e=> e.placeholder = t(e.dataset.tp));
+  $('#urBtn').setAttribute('aria-pressed', lang==='ur');
+  $('#enBtn').setAttribute('aria-pressed', lang==='en');
+  renderVehicles(); renderPick(); renderBookings(); updateFare();
+}
+$('#urBtn').onclick = ()=>{ lang='ur'; localStorage.setItem('lang',lang); applyLang(); };
+$('#enBtn').onclick = ()=>{ lang='en'; localStorage.setItem('lang',lang); applyLang(); };
+
+/* ============ نقشہ ============ */
+const map = L.map('map',{zoomControl:false}).setView(DEFAULT_CENTER, 14);
+L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'© OpenStreetMap'}).addTo(map);
+let pickM=null, dropM=null, line=null;
+
+function dist(a,b){
+  const R=6371, r=Math.PI/180;
+  const dLat=(b.lat-a.lat)*r, dLng=(b.lng-a.lng)*r;
+  const h=Math.sin(dLat/2)**2+Math.cos(a.lat*r)*Math.cos(b.lat*r)*Math.sin(dLng/2)**2;
+  return 2*R*Math.asin(Math.sqrt(h))*1.3; // سڑک کے موڑ کے لیے 1.3
+}
+async function reverse(lat,lng){
+  try{
+    const r = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&accept-language=${lang}`);
+    const j = await r.json();
+    return (j.display_name||'').split(',').slice(0,3).join(',') || `${lat.toFixed(4)}, ${lng.toFixed(4)}`;
+  }catch{ return `${lat.toFixed(4)}, ${lng.toFixed(4)}`; }
+}
+async function setPickup(lat,lng){
+  pickup = {lat,lng,name:''};
+  if(pickM) pickM.setLatLng([lat,lng]); else pickM=L.circleMarker([lat,lng],{radius:9,color:'#fff',weight:3,fillColor:'#1F8A4C',fillOpacity:1}).addTo(map);
+  pickup.name = await reverse(lat,lng); renderPick(); drawRoute();
+}
+async function setDrop(lat,lng,name){
+  drop = {lat,lng,name:name||''};
+  if(dropM) dropM.setLatLng([lat,lng]); else dropM=L.circleMarker([lat,lng],{radius:9,color:'#fff',weight:3,fillColor:'#7B4DE0',fillOpacity:1}).addTo(map);
+  if(!name) drop.name = await reverse(lat,lng);
+  $('#dropIn').value = drop.name; drawRoute(); updateFare();
+}
+function drawRoute(){
+  if(line){ map.removeLayer(line); line=null; }
+  if(pickup && drop){
+    line = L.polyline([[pickup.lat,pickup.lng],[drop.lat,drop.lng]],{color:'#12352B',weight:4,dashArray:'6 8'}).addTo(map);
+    map.fitBounds(line.getBounds(),{padding:[60,260]});
+  }
+}
+function renderPick(){ $('#pickTxt').textContent = pickup ? (pickup.name || t('locating')) : t('locating'); }
+map.on('click', e=> setDrop(e.latlng.lat, e.latlng.lng));
+
+function locate(){
+  if(!navigator.geolocation){ setPickup(...DEFAULT_CENTER); return; }
+  navigator.geolocation.getCurrentPosition(
+    p=>{ map.setView([p.coords.latitude,p.coords.longitude],16); setPickup(p.coords.latitude,p.coords.longitude); },
+    ()=>{ setPickup(...DEFAULT_CENTER); },
+    {enableHighAccuracy:true,timeout:10000}
+  );
+}
+$('#locate').onclick = locate;
+
+/* ڈراپ آف تلاش */
+$('#dropIn').addEventListener('keydown', async e=>{
+  if(e.key!=='Enter') return;
+  const q = e.target.value.trim(); if(!q) return;
+  try{
+    const c = map.getCenter();
+    const r = await fetch(`https://nominatim.openstreetmap.org/search?format=json&limit=1&q=${encodeURIComponent(q)}&viewbox=${c.lng-0.3},${c.lat+0.3},${c.lng+0.3},${c.lat-0.3}`);
+    const j = await r.json();
+    if(!j.length){ toast(t('notFound')); return; }
+    setDrop(+j[0].lat,+j[0].lon,q);
+  }catch{ toast(t('notFound')); }
+  e.target.blur();
+});
+
+/* ============ گاڑی اور کرایہ ============ */
+function renderVehicles(){
+  $('#vehicles').innerHTML = Object.keys(VEHICLES).map(k=>
+    `<button class="veh" data-v="${k}" aria-pressed="${k===vehicle}">${ICONS[VEHICLES[k].icon]}<b>${t(k)}</b><small>Rs. ${VEHICLES[k].perKm}/${t('km')}</small></button>`
+  ).join('');
+  $$('.veh').forEach(b=> b.onclick=()=>{ vehicle=b.dataset.v; renderVehicles(); updateFare(); });
+}
+function fareNow(){
+  if(!pickup||!drop) return null;
+  const v=VEHICLES[vehicle], d=dist(pickup,drop);
+  return { km:d, fare: Math.round((v.base+v.perKm*d)/10)*10 };
+}
+function updateFare(){
+  const f=fareNow();
+  $('#fareVal').textContent = f ? `Rs. ${f.fare}  (${f.km.toFixed(1)} ${t('km')})` : '—';
+  $('#book').disabled = !f;
+}
+
+/* ============ بکنگ ============ */
+$('#book').onclick = ()=>{
+  const f=fareNow(); if(!f){ toast(t('pickDrop')); return; }
+  const w=$('#whenIn').value;
+  bookings.unshift({
+    id:Date.now(), vehicle, from:pickup.name, to:drop.name, fare:f.fare, km:f.km,
+    status: w ? 'scheduled' : 'progress', when: w || new Date().toISOString()
+  });
+  save(); toast(t('booked'));
+  tab = w ? 'scheduled' : 'progress'; go('bookings');
+};
+
+function renderBookings(){
+  $$('#tabs button').forEach(b=> b.setAttribute('aria-selected', b.dataset.tab===tab));
+  const items = bookings.filter(b=>b.status===tab);
+  const box = $('#bkList');
+  if(!items.length){
+    box.innerHTML = `<div class="empty">${ICONS.rickshaw.replace('<svg','<svg fill="gray"')}<p>${t('noBooking')}</p><button class="cta" data-go="home">${t('bookNow')}</button></div>`;
+    return;
+  }
+  box.innerHTML = items.map(b=>`
+    <div class="bk">
+      <div class="head"><span>${t(b.vehicle)}</span><span>Rs. ${b.fare}</span></div>
+      <p>${esc(b.from)} → ${esc(b.to)}</p>
+      <p>${new Date(b.when).toLocaleString(lang==='ur'?'ur-PK':'en-GB')}</p>
+      ${b.status!=='done'?`<div class="acts"><button data-done="${b.id}">${t('complete')}</button><button class="x" data-del="${b.id}">${t('cancel')}</button></div>`:''}
+    </div>`).join('');
+  $$('[data-done]').forEach(x=> x.onclick=()=>{ const b=bookings.find(i=>i.id==x.dataset.done); b.status='done'; save(); renderBookings(); });
+  $$('[data-del]').forEach(x=> x.onclick=()=>{ bookings=bookings.filter(i=>i.id!=x.dataset.del); save(); renderBookings(); });
+}
+const esc = s => String(s||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+$$('#tabs button').forEach(b=> b.onclick=()=>{ tab=b.dataset.tab; renderBookings(); });
+
+/* ============ نیویگیشن ============ */
+function go(id){
+  $$('.screen').forEach(s=>s.classList.toggle('on', s.id===id));
+  closeMenu();
+  if(id==='bookings') renderBookings();
+  if(id==='home') setTimeout(()=>map.invalidateSize(),50);
+}
+document.addEventListener('click', e=>{ const g=e.target.closest('[data-go]'); if(g) go(g.dataset.go); });
+function openMenu(){ $('#drawer').classList.add('on'); $('#scrim').classList.add('on'); }
+function closeMenu(){ $('#drawer').classList.remove('on'); $('#scrim').classList.remove('on'); }
+$('#openMenu').onclick = openMenu; $('#scrim').onclick = closeMenu;
+
+/* ============ شروع ============ */
+applyLang(); locate();
+if('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js');
+</script>
+</body>
+</html>
