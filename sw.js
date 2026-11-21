@@ -1,4 +1,4 @@
-const CACHE = 'sawari-v2';
+const CACHE = 'sawari-v4';
 const SHELL = ['./', './index.html', './manifest.json', './icon.svg', './icon-192.png', './icon-512.png'];
 
 self.addEventListener('install', e => {
@@ -13,7 +13,7 @@ self.addEventListener('fetch', e => {
   if (e.request.method !== 'GET') return;
   const url = new URL(e.request.url);
   // نقشے کی ٹائلیں اور پتے کی تلاش کیش نہ کریں
-  if (url.hostname.includes('openstreetmap.org')) return;
+  if (url.hostname.includes('openstreetmap.org') || url.hostname.includes('supabase.co')) return;
   e.respondWith(
     fetch(e.request).then(r => {
       const copy = r.clone();
