@@ -99,6 +99,22 @@ html[dir=rtl] .back{transform:scaleX(-1)}
 .page{flex:1;padding:24px;overflow:auto}
 .page .big{font-size:2.2rem;color:var(--leaf);font-weight:700;margin:8px 0 16px}
 .page a{color:var(--leaf);font-weight:700}
+/* role + driver */
+.rolebox{flex:1;display:flex;flex-direction:column;justify-content:center;gap:16px;padding:24px;background:var(--ink);color:#fff;text-align:center}
+.rolebox img{width:96px;height:96px;border-radius:24px;margin:0 auto}
+.rolebox h1{font-size:1.5rem;font-weight:500;margin-bottom:8px}
+.rolebtn{background:var(--card);color:var(--text);border-radius:24px;padding:22px 16px;display:block;width:100%;border:3px solid transparent}
+.rolebtn b{display:block;font-size:1.4rem;color:var(--leaf)}
+.rolebtn small{color:var(--muted)}
+.rolebtn:active{border-color:var(--saffron)}
+.dpage{flex:1;overflow:auto;padding:14px}
+.dcard{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:14px;margin-bottom:12px}
+.dcard h2{font-size:1.05rem;font-weight:700;margin-bottom:8px}
+.cta.off{background:var(--muted)}
+.state{text-align:center;color:var(--muted);margin:6px 0 0}
+.earn{font-size:1.8rem;color:var(--leaf);font-weight:700}
+.rider-only{}
+body[data-role=driver] .rider-only{display:none}
 .toast{position:fixed;z-index:2000;inset-inline:16px;bottom:calc(24px + env(safe-area-inset-bottom));background:var(--ink);color:#fff;padding:14px 18px;border-radius:16px;display:none;text-align:center}
 .toast.on{display:block}
 @media (prefers-reduced-motion:reduce){.drawer{transition:none}}
@@ -154,15 +170,43 @@ html[dir=rtl] .back{transform:scaleX(-1)}
   </div>
 </section>
 
+<!-- ROLE -->
+<section class="screen" id="role">
+  <div class="rolebox">
+    <img src="icon-192.png" alt="">
+    <h1 data-t="chooseRole"></h1>
+    <button class="rolebtn" data-role="rider"><b data-t="roleRider"></b><small data-t="roleRiderSub"></small></button>
+    <button class="rolebtn" data-role="driver"><b data-t="roleDriver"></b><small data-t="roleDriverSub"></small></button>
+  </div>
+</section>
+
+<!-- DRIVER -->
+<section class="screen" id="driver">
+  <div class="top"><button class="back" id="openMenu2" aria-label="menu" style="transform:none">☰</button><h1 data-t="driverHome"></h1><span style="width:48px"></span></div>
+  <div class="dpage">
+    <div class="dcard">
+      <button class="cta off" id="onlineBtn"></button>
+      <p class="state" id="onlineState"></p>
+    </div>
+    <div class="dcard"><h2 data-t="myVehicle"></h2><div class="vehicles" id="dVehicles" style="margin:0"></div></div>
+    <div class="dcard"><h2 data-t="todayEarn"></h2><div class="earn" id="earnVal">Rs. 0</div></div>
+    <h2 style="margin:8px 4px" data-t="requests"></h2>
+    <div id="reqList"></div>
+    <h2 style="margin:8px 4px" data-t="myTrips"></h2>
+    <div id="tripList"></div>
+  </div>
+</section>
+
 <div class="scrim" id="scrim"></div>
 <aside class="drawer" id="drawer" aria-label="menu">
-  <div class="profile"><div class="avatar">S</div><div data-t="guest"></div></div>
+  <div class="profile"><div class="avatar">S</div><div id="whoAmI"></div></div>
   <nav>
     <button data-go="home" data-t="home"></button>
-    <button data-go="bookings" data-t="bookings"></button>
-    <button data-go="wallet" data-t="wallet"></button>
+    <button class="rider-only" data-go="bookings" data-t="bookings"></button>
+    <button class="rider-only" data-go="wallet" data-t="wallet"></button>
     <button data-go="contact" data-t="contact"></button>
   </nav>
+  <nav><button id="switchRole" data-t="switchRole"></button></nav>
   <div class="lang">
     <button id="enBtn">English</button>
     <button id="urBtn">اردو</button>
@@ -191,7 +235,14 @@ const T = {
     booked:'بکنگ ہو گئی', complete:'مکمل کریں', cancel:'منسوخ', balance:'موجودہ بیلنس',
     walletNote:'ادائیگی ابھی نقد ہے۔ آن لائن والٹ بعد میں شامل ہو گا۔',
     contactNote:'کسی بھی مدد کے لیے ہم سے رابطہ کریں۔', notFound:'جگہ نہیں ملی', pickDrop:'پہلے ڈراپ آف منتخب کریں',
-    km:'کلومیٹر'
+    km:'کلومیٹر',
+    chooseRole:'آپ کون ہیں؟', roleRider:'سواری', roleRiderSub:'رکشا، چنگ چی یا لوڈر بک کریں',
+    roleDriver:'ڈرائیور', roleDriverSub:'بکنگ قبول کریں اور کمائیں', switchRole:'روپ بدلیں',
+    driverHome:'ڈرائیور', goOnline:'آن لائن ہوں', goOffline:'آف لائن ہوں',
+    youOnline:'آپ آن لائن ہیں، بکنگ آ سکتی ہے', youOffline:'آپ آف لائن ہیں',
+    myVehicle:'میری گاڑی', todayEarn:'آج کی کمائی', requests:'نئی بکنگز', myTrips:'میرے سفر',
+    accept:'قبول کریں', noRequests:'ابھی کوئی بکنگ نہیں', goOnlineFirst:'بکنگ دیکھنے کے لیے آن لائن ہوں',
+    taken:'یہ بکنگ کوئی اور لے چکا', driverFound:'ڈرائیور مل گیا', driverGuest:'ڈرائیور', finish:'سفر مکمل'
   },
   en: {
     myLocation:'My location', tapHint:'Tap the map or type a place to set the dropoff',
@@ -202,7 +253,14 @@ const T = {
     booked:'Booking placed', complete:'Complete', cancel:'Cancel', balance:'Current balance',
     walletNote:'Payment is cash for now. Online wallet comes later.',
     contactNote:'Contact us for any help.', notFound:'Place not found', pickDrop:'Choose a dropoff first',
-    km:'km'
+    km:'km',
+    chooseRole:'Who are you?', roleRider:'Rider', roleRiderSub:'Book a rickshaw, chingchi or loader',
+    roleDriver:'Driver', roleDriverSub:'Accept bookings and earn', switchRole:'Switch role',
+    driverHome:'Driver', goOnline:'Go online', goOffline:'Go offline',
+    youOnline:'You are online, bookings can arrive', youOffline:'You are offline',
+    myVehicle:'My vehicle', todayEarn:"Today's earnings", requests:'New bookings', myTrips:'My trips',
+    accept:'Accept', noRequests:'No bookings yet', goOnlineFirst:'Go online to see bookings',
+    taken:'This booking was taken', driverFound:'Driver found', driverGuest:'Driver', finish:'Finish trip'
   }
 };
 let lang = localStorage.getItem('lang') || 'ur';
@@ -234,7 +292,7 @@ function applyLang(){
   $$('[data-tp]').forEach(e=> e.placeholder = t(e.dataset.tp));
   $('#urBtn').setAttribute('aria-pressed', lang==='ur');
   $('#enBtn').setAttribute('aria-pressed', lang==='en');
-  renderVehicles(); renderPick(); renderBookings(); updateFare();
+  renderVehicles(); renderPick(); renderBookings(); updateFare(); renderDriver();
 }
 $('#urBtn').onclick = ()=>{ lang='ur'; localStorage.setItem('lang',lang); applyLang(); };
 $('#enBtn').onclick = ()=>{ lang='en'; localStorage.setItem('lang',lang); applyLang(); };
@@ -322,7 +380,7 @@ function updateFare(){
 
 /* ============ بکنگ ============ */
 $('#book').onclick = ()=>{
-  const f=fareNow(); if(!f){ toast(t('pickDrop')); return; }
+  reloadBookings(); const f=fareNow(); if(!f){ toast(t('pickDrop')); return; }
   const w=$('#whenIn').value;
   bookings.unshift({
     id:Date.now(), vehicle, from:pickup.name, to:drop.name, fare:f.fare, km:f.km,
@@ -345,16 +403,19 @@ function renderBookings(){
       <div class="head"><span>${t(b.vehicle)}</span><span>Rs. ${b.fare}</span></div>
       <p>${esc(b.from)} → ${esc(b.to)}</p>
       <p>${new Date(b.when).toLocaleString(lang==='ur'?'ur-PK':'en-GB')}</p>
+      ${b.accepted&&b.status!=='done'?`<p style="color:var(--leaf);font-weight:700">✓ ${t('driverFound')}</p>`:''}
       ${b.status!=='done'?`<div class="acts"><button data-done="${b.id}">${t('complete')}</button><button class="x" data-del="${b.id}">${t('cancel')}</button></div>`:''}
     </div>`).join('');
-  $$('[data-done]').forEach(x=> x.onclick=()=>{ const b=bookings.find(i=>i.id==x.dataset.done); b.status='done'; save(); renderBookings(); });
-  $$('[data-del]').forEach(x=> x.onclick=()=>{ bookings=bookings.filter(i=>i.id!=x.dataset.del); save(); renderBookings(); });
+  $$('[data-done]').forEach(x=> x.onclick=()=>{ reloadBookings(); const b=bookings.find(i=>i.id==x.dataset.done); b.status='done'; save(); renderBookings(); });
+  $$('[data-del]').forEach(x=> x.onclick=()=>{ reloadBookings(); bookings=bookings.filter(i=>i.id!=x.dataset.del); save(); renderBookings(); });
 }
 const esc = s => String(s||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 $$('#tabs button').forEach(b=> b.onclick=()=>{ tab=b.dataset.tab; renderBookings(); });
 
 /* ============ نیویگیشن ============ */
 function go(id){
+  if(id==='home' && role==='driver') id='driver';
+  if(id==='bookings') reloadBookings();
   $$('.screen').forEach(s=>s.classList.toggle('on', s.id===id));
   closeMenu();
   if(id==='bookings') renderBookings();
@@ -365,8 +426,78 @@ function openMenu(){ $('#drawer').classList.add('on'); $('#scrim').classList.add
 function closeMenu(){ $('#drawer').classList.remove('on'); $('#scrim').classList.remove('on'); }
 $('#openMenu').onclick = openMenu; $('#scrim').onclick = closeMenu;
 
+/* ============ ڈرائیور ============ */
+let role = localStorage.getItem('role');
+let dVeh = localStorage.getItem('dVeh') || 'rickshaw';
+let online = localStorage.getItem('online')==='1';
+function reloadBookings(){ bookings = JSON.parse(localStorage.getItem('bookings') || '[]'); }
+
+function setRole(r){
+  role = r; localStorage.setItem('role', r);
+  document.body.dataset.role = r;
+  $('#whoAmI').textContent = r==='driver' ? t('driverGuest') : t('guest');
+  if(r==='driver'){ go('driver'); renderDriver(); }
+  else { go('home'); if(!pickup) locate(); }
+}
+$$('[data-role]').forEach(b=> b.onclick = ()=> setRole(b.dataset.role));
+$('#switchRole').onclick = ()=>{ closeMenu(); $$('.screen').forEach(s=>s.classList.toggle('on', s.id==='role')); };
+$('#openMenu2').onclick = openMenu;
+$('#onlineBtn').onclick = ()=>{ online=!online; localStorage.setItem('online', online?'1':'0'); renderDriver(); };
+
+function tripCard(b, open){
+  return `<div class="bk">
+    <div class="head"><span>${t(b.vehicle)}</span><span>Rs. ${b.fare}</span></div>
+    <p>${esc(b.from)} → ${esc(b.to)}</p>
+    <p>${b.km.toFixed(1)} ${t('km')} · ${new Date(b.when).toLocaleString(lang==='ur'?'ur-PK':'en-GB')}</p>
+    <div class="acts"><button ${open?`data-acc="${b.id}"`:`data-fin="${b.id}"`}>${open?t('accept'):t('finish')}</button></div>
+  </div>`;
+}
+function renderDriver(){
+  if(!$('#onlineBtn')) return;
+  $('#onlineBtn').textContent = online ? t('goOffline') : t('goOnline');
+  $('#onlineBtn').classList.toggle('off', !online);
+  $('#onlineState').textContent = online ? t('youOnline') : t('youOffline');
+  $('#whoAmI').textContent = role==='driver' ? t('driverGuest') : t('guest');
+  $('#dVehicles').innerHTML = Object.keys(VEHICLES).map(k=>
+    `<button class="veh" data-dv="${k}" aria-pressed="${k===dVeh}">${ICONS[VEHICLES[k].icon]}<b>${t(k)}</b></button>`).join('');
+  $$('[data-dv]').forEach(b=> b.onclick=()=>{ dVeh=b.dataset.dv; localStorage.setItem('dVeh',dVeh); renderDriver(); });
+
+  const today = new Date().toDateString();
+  const earn = bookings.filter(b=>b.driverDone && new Date(b.doneAt).toDateString()===today).reduce((s,b)=>s+b.fare,0);
+  $('#earnVal').textContent = 'Rs. ' + earn;
+
+  const open = online ? bookings.filter(b=>!b.accepted && b.status!=='done' && b.vehicle===dVeh) : [];
+  $('#reqList').innerHTML = !online ? `<p class="empty" style="margin-top:12px">${t('goOnlineFirst')}</p>`
+    : open.length ? open.map(b=>tripCard(b,true)).join('') : `<p class="empty" style="margin-top:12px">${t('noRequests')}</p>`;
+  const mine = bookings.filter(b=>b.accepted && b.status!=='done');
+  $('#tripList').innerHTML = mine.map(b=>tripCard(b,false)).join('');
+
+  $$('[data-acc]').forEach(x=> x.onclick=()=>{
+    reloadBookings(); const b=bookings.find(i=>i.id==x.dataset.acc);
+    if(!b || b.accepted){ toast(t('taken')); renderDriver(); return; }
+    b.accepted=true; save(); renderDriver();
+  });
+  $$('[data-fin]').forEach(x=> x.onclick=()=>{
+    reloadBookings(); const b=bookings.find(i=>i.id==x.dataset.fin);
+    if(b){ b.status='done'; b.driverDone=true; b.doneAt=new Date().toISOString(); save(); }
+    renderDriver();
+  });
+}
+
+/* ایک ہی فون پر دونوں روپ آپس میں بات کریں (نمونہ) */
+let lastSig = '';
+setInterval(()=>{
+  const sig = localStorage.getItem('bookings');
+  if(sig===lastSig) return; lastSig = sig;
+  reloadBookings();
+  if($('#driver').classList.contains('on')) renderDriver();
+  if($('#bookings').classList.contains('on')) renderBookings();
+}, 2000);
+
 /* ============ شروع ============ */
-applyLang(); locate();
+applyLang();
+if(role==='driver'||role==='rider') setRole(role);
+else $$('.screen').forEach(s=>s.classList.toggle('on', s.id==='role'));
 if('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js');
 </script>
 </body>
