@@ -4,6 +4,8 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#12352B">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon.svg">
 <link rel="apple-touch-icon" href="icon-192.png">
@@ -68,7 +70,7 @@ button:focus-visible,input:focus-visible{outline:3px solid var(--saffron);outlin
 .scrim.on{display:block}
 .drawer{position:fixed;z-index:950;top:0;bottom:0;inset-inline-start:0;width:78%;max-width:320px;background:var(--ink);color:#fff;transform:translateX(105%);transition:transform .22s ease;display:flex;flex-direction:column;padding-top:env(safe-area-inset-top)}
 html[dir=ltr] .drawer{transform:translateX(-105%)}
-.drawer.on{transform:none}
+.drawer.on,html[dir=ltr] .drawer.on{transform:none}
 .profile{padding:28px 16px 18px;text-align:center;background:#0C261F}
 .avatar{width:84px;height:84px;border-radius:50%;background:var(--saffron);color:var(--ink);display:grid;place-items:center;margin:0 auto 8px;font-weight:700;font-size:1.6rem}
 .drawer nav button{display:block;width:100%;text-align:start;padding:14px 20px;border-bottom:1px solid #ffffff22;font-size:1.1rem}
@@ -132,6 +134,8 @@ body[data-role=driver] .rider-only{display:none}
 .num{width:84px;border:2px solid var(--line);border-radius:10px;padding:6px;background:var(--bg);color:var(--text);font:inherit}
 .lbl{display:flex;align-items:center;gap:4px;font-size:.85rem;color:var(--muted)}
 .adstrip{background:#fff;color:var(--ink);padding:14px 16px;text-align:start;width:100%;font-size:.95rem}
+.cbtn{flex:1;height:44px;display:grid;place-items:center;border-radius:22px;border:2px solid var(--leaf);color:var(--leaf);font-weight:700;text-decoration:none}
+.cbtn.wa{background:#25D366;border-color:#25D366;color:#fff}
 .toast{position:fixed;z-index:2000;inset-inline:16px;bottom:calc(24px + env(safe-area-inset-bottom));background:var(--ink);color:#fff;padding:14px 18px;border-radius:16px;display:none;text-align:center}
 .toast.on{display:block}
 @media (prefers-reduced-motion:reduce){.drawer{transition:none}}
@@ -152,6 +156,7 @@ body[data-role=driver] .rider-only{display:none}
     </div>
     <p class="hint" data-t="tapHint"></p>
 
+    <input class="txtin" id="rPhone" type="tel" inputmode="tel" data-tp="yourPhone" style="margin:10px 0 0">
     <div class="vehicles" id="vehicles" role="group"></div>
 
     <div class="fareBox"><button id="fUp"><b id="fHi"></b><span data-t="faster"></span></button><div class="mid"><span data-t="fare"></span><span id="fareVal">—</span></div><button id="fDn"><b id="fLo"></b><span data-t="longer"></span></button></div>
@@ -215,7 +220,7 @@ body[data-role=driver] .rider-only{display:none}
 
 <!-- ADMIN -->
 <section class="screen" id="admin">
-  <div class="top"><button class="back" data-go="advertise" aria-label="back">←</button><h1 data-t="adminLogin"></h1><span style="width:48px"></span></div>
+  <div class="top"><button class="back" id="adminBack" aria-label="back">←</button><h1 data-t="adminLogin"></h1><span style="width:48px"></span></div>
   <div class="page">
     <div id="adminGate"><input class="txtin" id="pinIn" type="password" inputmode="numeric" data-tp="pin"><button class="cta" id="pinBtn" data-t="enter"></button></div>
     <div id="adminPanel" hidden>
@@ -236,6 +241,7 @@ body[data-role=driver] .rider-only{display:none}
     <h1 data-t="chooseRole"></h1>
     <button class="rolebtn" data-role="rider"><b data-t="roleRider"></b><small data-t="roleRiderSub"></small></button>
     <button class="rolebtn" data-role="driver"><b data-t="roleDriver"></b><small data-t="roleDriverSub"></small></button>
+    <button class="rolebtn" data-role="admin"><b data-t="roleAdmin"></b><small data-t="roleAdminSub"></small></button>
   </div>
 </section>
 
@@ -247,7 +253,7 @@ body[data-role=driver] .rider-only{display:none}
       <button class="cta off" id="onlineBtn"></button>
       <p class="state" id="onlineState"></p>
     </div>
-    <div class="dcard"><h2 data-t="myVehicle"></h2><input id="dNameIn" class="txtin" data-tp="yourName"><div class="vehicles" id="dVehicles" style="margin:0"></div></div>
+    <div class="dcard"><h2 data-t="myVehicle"></h2><input id="dNameIn" class="txtin" data-tp="yourName"><input id="dPhoneIn" class="txtin" type="tel" inputmode="tel" data-tp="yourPhone"><div class="vehicles" id="dVehicles" style="margin:0"></div></div>
     <div class="dcard"><h2 data-t="todayEarn"></h2><div class="earn" id="earnVal">Rs. 0</div></div>
     <h2 style="margin:8px 4px" data-t="requests"></h2>
     <div id="reqList"></div>
@@ -298,7 +304,7 @@ const T = {
     contactNote:'کسی بھی مدد کے لیے ہم سے رابطہ کریں۔', notFound:'جگہ نہیں ملی', pickDrop:'پہلے ڈراپ آف منتخب کریں',
     km:'کلومیٹر',
     chooseRole:'آپ کون ہیں؟', roleRider:'سواری', roleRiderSub:'رکشا، چنگ چی یا لوڈر بک کریں',
-    roleDriver:'ڈرائیور', roleDriverSub:'بکنگ قبول کریں اور کمائیں', switchRole:'روپ بدلیں',
+    roleDriver:'ڈرائیور', roleDriverSub:'بکنگ قبول کریں اور کمائیں', roleAdmin:'ایڈمن', roleAdminSub:'اشتہار اور سیٹنگز (پن چاہیے)', switchRole:'روپ بدلیں',
     driverHome:'ڈرائیور', goOnline:'آن لائن ہوں', goOffline:'آف لائن ہوں',
     youOnline:'آپ آن لائن ہیں، بکنگ آ سکتی ہے', youOffline:'آپ آف لائن ہیں',
     myVehicle:'میری گاڑی', todayEarn:'آج کی کمائی', requests:'نئی بکنگز', myTrips:'میرے سفر',
@@ -309,7 +315,7 @@ const T = {
     advertise:'اشتہار دیں', advTitle:'اپنا اشتہار لگوانے کے لیے رابطہ کریں', advName:'آپ کا نام', advPhone:'فون نمبر', advMsg:'پیغام', advSend:'واٹس ایپ پر بھیجیں',
     adminLogin:'ایڈمن', pin:'پن', enter:'داخل ہوں', wrongPin:'غلط پن', adLabel:'اشتہار کا متن', waLabel:'واٹس ایپ نمبر (92 سے شروع)', saveBtn:'محفوظ کریں', saved:'محفوظ ہو گیا',
     copyCfg:'config.json کاپی کریں', copied:'کاپی ہو گیا', adminNote:'سب کے فون پر تبدیلی دکھانے کے لیے "config.json کاپی کریں" دبا کر گٹ ہب کی config.json میں پیسٹ کریں۔',
-    statsBook:'کل بکنگز', statsDone:'مکمل سفر', netErr:'نیٹ ورک کا مسئلہ، دوبارہ کوشش کریں'
+    statsBook:'کل بکنگز', statsDone:'مکمل سفر', netErr:'نیٹ ورک کا مسئلہ، دوبارہ کوشش کریں', yourPhone:'آپ کا واٹس ایپ نمبر (03xx…)', needPhone:'پہلے اپنا فون نمبر لکھیں', call:'کال', whatsapp:'واٹس ایپ'
   },
   en: {
     myLocation:'My location', tapHint:'Tap the map or type a place to set the dropoff',
@@ -322,7 +328,7 @@ const T = {
     contactNote:'Contact us for any help.', notFound:'Place not found', pickDrop:'Choose a dropoff first',
     km:'km',
     chooseRole:'Who are you?', roleRider:'Rider', roleRiderSub:'Book a rickshaw, chingchi or loader',
-    roleDriver:'Driver', roleDriverSub:'Accept bookings and earn', switchRole:'Switch role',
+    roleDriver:'Driver', roleDriverSub:'Accept bookings and earn', roleAdmin:'Admin', roleAdminSub:'Ads and settings (PIN needed)', switchRole:'Switch role',
     driverHome:'Driver', goOnline:'Go online', goOffline:'Go offline',
     youOnline:'You are online, bookings can arrive', youOffline:'You are offline',
     myVehicle:'My vehicle', todayEarn:"Today's earnings", requests:'New bookings', myTrips:'My trips',
@@ -333,7 +339,7 @@ const T = {
     advertise:'Advertise', advTitle:'Contact us to place your advertisement', advName:'Your name', advPhone:'Phone number', advMsg:'Message', advSend:'Send on WhatsApp',
     adminLogin:'Admin', pin:'PIN', enter:'Enter', wrongPin:'Wrong PIN', adLabel:'Ad text', waLabel:'WhatsApp number (start with 92)', saveBtn:'Save', saved:'Saved',
     copyCfg:'Copy config.json', copied:'Copied', adminNote:'To show changes on everyone\'s phone, tap "Copy config.json" and paste it into config.json on GitHub.',
-    statsBook:'Total bookings', statsDone:'Completed trips', netErr:'Network problem, try again'
+    statsBook:'Total bookings', statsDone:'Completed trips', netErr:'Network problem, try again', yourPhone:'Your WhatsApp number (03xx…)', needPhone:'Enter your phone number first', call:'Call', whatsapp:'WhatsApp'
   }
 };
 let lang = localStorage.getItem('lang') || 'ur';
@@ -456,6 +462,14 @@ function updateFare(){
 }
 
 /* ============ بکنگ ============ */
+/* ============ رابطہ (کال / واٹس ایپ) ============ */
+function waNum(n){ n=String(n||'').replace(/\D/g,''); if(n.startsWith('00')) n=n.slice(2); if(n.startsWith('0')) n='92'+n.slice(1); return n; }
+function contactBtns(phone){
+  const n=waNum(phone); if(!n) return '';
+  return `<div class="acts"><a class="cbtn" href="tel:+${n}">📞 ${t('call')}</a><a class="cbtn wa" href="https://wa.me/${n}" target="_blank" rel="noopener">${t('whatsapp')}</a></div>`;
+}
+function okPhone(){ if(dPhone.replace(/\D/g,'').length<10){ toast(t('needPhone')); return false; } return true; }
+
 /* ============ Supabase ============ */
 const SB = 'https://tqmmtavqrdzucjgxdpyh.supabase.co/rest/v1';
 const KEY = 'sb_publishable_0xMgiCrud66T7lGSQsZGJg_98Ii0wUZ';
@@ -465,12 +479,12 @@ async function api(path, method='GET', body){
   const tx = await r.text(); return tx ? JSON.parse(tx) : null;
 }
 const mapB = r => ({ id:+r.id, vehicle:r.vehicle, from:r.from_name, to:r.to_name, fare:r.fare, km:+r.km||0, status:r.status, when:r.when_at||r.created_at,
-  accepted:r.accepted, driver:r.driver_name, driverId:r.driver_id, driverDone:r.driver_done, doneAt:r.done_at, riderId:r.rider_id, offers:[], rejected:[] });
+  accepted:r.accepted, driver:r.driver_name, driverId:r.driver_id, driverDone:r.driver_done, doneAt:r.done_at, riderId:r.rider_id, riderPhone:r.rider_phone, driverPhone:r.driver_phone, offers:[], rejected:[] });
 async function pull(){
   try{
     const [bs,os] = await Promise.all([ api('/bookings?select=*&order=created_at.desc&limit=100'), api('/offers?select=*&order=created_at.asc&limit=500') ]);
     const m = new Map(); bookings = bs.map(r=>{ const b=mapB(r); m.set(b.id,b); return b; });
-    os.forEach(o=>{ const b=m.get(+o.booking_id); if(!b) return; b.offers.push({id:+o.id,did:o.driver_id,name:o.driver_name,fare:o.fare,eta:o.eta,trips:o.trips}); if(o.rejected) b.rejected.push(+o.id); });
+    os.forEach(o=>{ const b=m.get(+o.booking_id); if(!b) return; b.offers.push({id:+o.id,did:o.driver_id,name:o.driver_name,fare:o.fare,eta:o.eta,trips:o.trips,phone:o.driver_phone}); if(o.rejected) b.rejected.push(+o.id); });
     return true;
   }catch(e){ console.warn(e); return false; }
 }
@@ -478,10 +492,11 @@ async function mut(fn){ try{ await fn(); await pull(); return true; }catch(e){ c
 
 $('#book').onclick = async ()=>{
   const f=fareNow(); if(!f){ toast(t('pickDrop')); return; }
+  const ph=$('#rPhone').value.trim(); if(ph.replace(/\D/g,'').length<10){ toast(t('needPhone')); return; } localStorage.setItem('rPhone',ph);
   const w=$('#whenIn').value, id=Date.now();
   $('#book').disabled=true;
   const ok = await mut(()=>api('/bookings','POST',{ id, vehicle, from_name:pickup.name, to_name:drop.name, fare:offerFare||f.fare, km:+f.km.toFixed(2),
-    status: w?'scheduled':'searching', when_at: w?new Date(w).toISOString():new Date().toISOString(), rider_id:rid }));
+    status: w?'scheduled':'searching', when_at: w?new Date(w).toISOString():new Date().toISOString(), rider_id:rid, rider_phone:ph }));
   updateFare();
   if(!ok) return;
   toast(t('booked'));
@@ -502,6 +517,7 @@ function renderBookings(){
       <p>${esc(b.from)} → ${esc(b.to)}</p>
       <p>${new Date(b.when).toLocaleString(lang==='ur'?'ur-PK':'en-GB')}</p>
       ${b.accepted&&b.status!=='done'?`<p style="color:var(--leaf);font-weight:700">✓ ${t('driverFound')}${b.driver?': '+esc(b.driver):''}</p>`:''}
+      ${b.accepted&&b.status!=='done'&&b.driverPhone?contactBtns(b.driverPhone):''}
       ${b.status!=='done'?`<div class="acts"><button data-done="${b.id}">${t('complete')}</button><button class="x" data-del="${b.id}">${t('cancel')}</button></div>`:''}
     </div>`).join('');
   $$('[data-done]').forEach(x=> x.onclick=async()=>{ await mut(()=>api('/bookings?id=eq.'+x.dataset.done,'PATCH',{status:'done'})); renderBookings(); });
@@ -531,10 +547,12 @@ let role = localStorage.getItem('role');
 let dVeh = localStorage.getItem('dVeh') || 'rickshaw';
 let online = localStorage.getItem('online')==='1';
 let dName = localStorage.getItem('dName') || '';
+let dPhone = localStorage.getItem('dPhone') || '';
 let did = localStorage.getItem('did') || Math.random().toString(36).slice(2); localStorage.setItem('did', did);
 function reloadBookings(){}
 
 function setRole(r){
+  if(r==='admin'){ go('admin'); return; }
   role = r; localStorage.setItem('role', r);
   document.body.dataset.role = r;
   $('#whoAmI').textContent = r==='driver' ? t('driverGuest') : t('guest');
@@ -542,13 +560,15 @@ function setRole(r){
   else { go('home'); if(!pickup) locate(); }
 }
 $$('[data-role]').forEach(b=> b.onclick = ()=> setRole(b.dataset.role));
-$('#switchRole').onclick = ()=>{ closeMenu(); $$('.screen').forEach(s=>s.classList.toggle('on', s.id==='role')); };
+function showRole(){ closeMenu(); $$('.screen').forEach(s=>s.classList.toggle('on', s.id==='role')); }
+$('#switchRole').onclick = showRole;
+$('#adminBack').onclick = ()=>{ adminOK=false; adminPin=''; showRole(); };
 $('#openMenu2').onclick = openMenu;
 $('#onlineBtn').onclick = ()=>{ online=!online; localStorage.setItem('online', online?'1':'0'); renderDriver(); };
 
 function tripCard(b, kind){
   const base = `<div class="bk"><div class="head"><span>${t(b.vehicle)}</span><span>Rs. ${b.fare}</span></div><p>${esc(b.from)} → ${esc(b.to)}</p><p>${b.km.toFixed(1)} ${t('km')}</p>`;
-  if(kind==='mine') return base+`<div class="acts"><button data-fin="${b.id}">${t('finish')}</button></div></div>`;
+  if(kind==='mine') return base+(b.riderPhone?contactBtns(b.riderPhone):'')+`<div class="acts"><button data-fin="${b.id}">${t('finish')}</button></div></div>`;
   if(b.status==='scheduled') return base+`<p>${new Date(b.when).toLocaleString(lang==='ur'?'ur-PK':'en-GB')}</p><div class="acts"><button data-acc="${b.id}">${t('accept')}</button></div></div>`;
   const mo = (b.offers||[]).find(o=>o.did===did);
   if(mo) return base+`<p style="color:var(--leaf);font-weight:700">${t('offerSent')}: Rs. ${mo.fare}</p></div>`;
@@ -574,18 +594,18 @@ function renderDriver(){
   $('#tripList').innerHTML = bookings.filter(b=>b.accepted && b.status!=='done' && b.driverId===did).map(b=>tripCard(b,'mine')).join('');
 
   $$('[data-acc]').forEach(x=> x.onclick=async()=>{
-    const id=x.dataset.acc;
-    await mut(()=>api(`/bookings?id=eq.${id}&accepted=eq.false`,'PATCH',{accepted:true, driver_id:did, driver_name:dName||t('driverGuest')}));
+    const id=x.dataset.acc; if(!okPhone()) return;
+    await mut(()=>api(`/bookings?id=eq.${id}&accepted=eq.false`,'PATCH',{accepted:true, driver_id:did, driver_name:dName||t('driverGuest'), driver_phone:dPhone}));
     const b=bookings.find(i=>i.id==id); if(b && b.driverId!==did) toast(t('taken'));
     renderDriver();
   });
   $$('[data-off]').forEach(x=> x.onclick=async()=>{
-    const id=+x.dataset.off;
+    const id=+x.dataset.off; if(!okPhone()) return;
     const fare=Math.max(10, +$('#of'+id).value||0), eta=Math.max(1, +$('#et'+id).value||5);
     const trips=bookings.filter(i=>i.driverDone&&i.driverId===did).length;
     await mut(async()=>{
       await api(`/offers?booking_id=eq.${id}&driver_id=eq.${did}`,'DELETE');
-      await api('/offers','POST',{booking_id:id, driver_id:did, driver_name:dName||t('driverGuest'), fare, eta, trips});
+      await api('/offers','POST',{booking_id:id, driver_id:did, driver_name:dName||t('driverGuest'), fare, eta, trips, driver_phone:dPhone});
     });
     renderDriver();
   });
@@ -608,7 +628,7 @@ function renderSearch(){
   $$('[data-no]').forEach(x=>x.onclick=async()=>{ await mut(()=>api('/offers?id=eq.'+x.dataset.no,'PATCH',{rejected:true})); renderSearch(); });
   $$('[data-ok]').forEach(x=>x.onclick=async()=>{
     const o=(b.offers||[]).find(i=>i.id==x.dataset.ok); if(!o) return;
-    await mut(()=>api(`/bookings?id=eq.${b.id}&accepted=eq.false`,'PATCH',{accepted:true, fare:o.fare, driver_name:o.name, driver_id:o.did, status:'progress'}));
+    await mut(()=>api(`/bookings?id=eq.${b.id}&accepted=eq.false`,'PATCH',{accepted:true, fare:o.fare, driver_name:o.name, driver_id:o.did, driver_phone:o.phone, status:'progress'}));
     renderSearch();
   });
 }
@@ -651,6 +671,8 @@ $('#adSave').onclick = async ()=>{
 };
 $('#dNameIn').value = dName;
 $('#dNameIn').oninput = e=>{ dName=e.target.value; localStorage.setItem('dName',dName); };
+$('#dPhoneIn').value = dPhone; $('#dPhoneIn').oninput = e=>{ dPhone=e.target.value; localStorage.setItem('dPhone',dPhone); };
+$('#rPhone').value = localStorage.getItem('rPhone') || '';
 
 /* ہر چند سیکنڈ میں سرور سے تازہ ڈیٹا */
 let lastSig = '';

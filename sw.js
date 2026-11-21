@@ -1,4 +1,4 @@
-const CACHE = 'sawari-v4';
+const CACHE = 'sawari-v6';
 const SHELL = ['./', './index.html', './manifest.json', './icon.svg', './icon-192.png', './icon-512.png'];
 
 self.addEventListener('install', e => {
