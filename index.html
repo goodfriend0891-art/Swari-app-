@@ -50,9 +50,10 @@ button:focus-visible,input:focus-visible{outline:3px solid var(--saffron);outlin
 .row .txt{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .hint{color:var(--muted);font-size:.9rem;margin:8px 4px 0}
 
-.vehicles{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:14px 0}
+.vehicles{display:flex;gap:10px;margin:14px 0;overflow-x:auto;padding-bottom:4px}
 .veh{border:2px solid var(--line);border-radius:18px;padding:10px 4px;text-align:center;background:var(--bg)}
-.veh svg{width:56px;height:40px}
+.veh{flex:0 0 100px}
+.veh .vi{width:80px;height:60px;object-fit:cover;border-radius:10px;display:block;margin:0 auto 4px}
 .veh b{display:block}
 .veh small{color:var(--muted)}
 .veh[aria-pressed=true]{border-color:var(--leaf);background:var(--mint)}
@@ -136,6 +137,21 @@ body[data-role=driver] .rider-only{display:none}
 .adstrip{background:#fff;color:var(--ink);padding:14px 16px;text-align:start;width:100%;font-size:.95rem}
 .cbtn{flex:1;height:44px;display:grid;place-items:center;border-radius:22px;border:2px solid var(--leaf);color:var(--leaf);font-weight:700;text-decoration:none}
 .cbtn.wa{background:#25D366;border-color:#25D366;color:#fff}
+.vmark img{width:48px;height:36px;object-fit:cover;border-radius:8px;border:2px solid #fff;box-shadow:0 2px 8px #0006}
+#tmap{flex:1;min-height:0}
+.tcard{background:var(--card);padding:12px 16px calc(12px + env(safe-area-inset-bottom));border-radius:20px 20px 0 0;box-shadow:0 -4px 16px #0003;position:relative;z-index:500}
+.tcard .tinfo{font-weight:700;font-size:1.05rem;margin-bottom:6px}
+.adbar{position:absolute;z-index:480;top:calc(env(safe-area-inset-top) + 68px);inset-inline:12px;height:40px;display:flex;align-items:center;gap:8px;padding:0 12px;border-radius:20px;background:var(--card);color:var(--text);box-shadow:0 2px 10px #0003;overflow:hidden;font-size:.9rem;line-height:1.2;text-align:start}
+.adbar[hidden]{display:none}
+.adbar small{flex:none;background:var(--saffron);color:var(--ink);border-radius:6px;padding:0 6px;font-weight:700;line-height:1.5}
+.adbar span{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.adbar.swap span{animation:adfade .5s}
+@keyframes adfade{from{opacity:0}to{opacity:1}}
+@media (prefers-reduced-motion:reduce){.adbar.swap span{animation:none}}
+.adbar.img{height:64px}
+.adbar img{width:56px;height:48px;object-fit:cover;border-radius:8px;flex:none}
+.adbar img[hidden]{display:none}
+.adbar.img span{white-space:normal;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
 .toast{position:fixed;z-index:2000;inset-inline:16px;bottom:calc(24px + env(safe-area-inset-bottom));background:var(--ink);color:#fff;padding:14px 18px;border-radius:16px;display:none;text-align:center}
 .toast.on{display:block}
 @media (prefers-reduced-motion:reduce){.drawer{transition:none}}
@@ -148,6 +164,7 @@ body[data-role=driver] .rider-only{display:none}
   <div id="map" aria-label="map"></div>
   <button class="menu-btn" id="openMenu" aria-label="menu"><span></span></button>
   <button class="locate" id="locate" data-t="myLocation"></button>
+  <button class="adbar" id="adBar" hidden><small>AD</small><img id="adImg" alt="" hidden><span id="adTxt"></span></button>
 
   <div class="sheet">
     <div class="route">
@@ -209,28 +226,24 @@ body[data-role=driver] .rider-only{display:none}
   <div class="top"><button class="back" data-go="home" aria-label="back">←</button><h1 data-t="advertise"></h1><span style="width:48px"></span></div>
   <div class="page">
     <div class="dcard"><h2 id="adText"></h2></div>
+    <div id="advContact"></div>
     <p data-t="advTitle" style="margin-bottom:10px"></p>
     <input class="txtin" id="advName" data-tp="advName">
     <input class="txtin" id="advPhone" type="tel" data-tp="advPhone">
     <input class="txtin" id="advMsg" data-tp="advMsg">
     <button class="cta" id="advSend" data-t="advSend"></button>
-    <p style="margin-top:18px"><a href="#" id="toAdmin" data-t="adminLogin"></a></p>
+    
   </div>
 </section>
 
-<!-- ADMIN -->
-<section class="screen" id="admin">
-  <div class="top"><button class="back" id="adminBack" aria-label="back">←</button><h1 data-t="adminLogin"></h1><span style="width:48px"></span></div>
-  <div class="page">
-    <div id="adminGate"><input class="txtin" id="pinIn" type="password" inputmode="numeric" data-tp="pin"><button class="cta" id="pinBtn" data-t="enter"></button></div>
-    <div id="adminPanel" hidden>
-      <p data-t="adLabel"></p><input class="txtin" id="adInput">
-      <p data-t="waLabel"></p><input class="txtin" id="waInput" inputmode="numeric">
-      <button class="cta" id="adSave" data-t="saveBtn"></button>
-      <button class="cta" id="adCopy" data-t="copyCfg" style="background:var(--ink);margin-top:10px"></button>
-      <p class="hint" data-t="adminNote"></p>
-      <p id="stats" style="margin-top:12px"></p>
-    </div>
+<!-- TRACK -->
+<section class="screen" id="track">
+  <div class="top"><button class="back" id="trackBack" aria-label="back">←</button><h1 data-t="tracking"></h1><span style="width:48px"></span></div>
+  <div id="tmap"></div>
+  <div class="tcard">
+    <div class="tinfo" id="tInfo"></div>
+    <div id="tContact"></div>
+    <button class="cta" id="tAction" hidden style="margin-top:10px"></button>
   </div>
 </section>
 
@@ -241,7 +254,6 @@ body[data-role=driver] .rider-only{display:none}
     <h1 data-t="chooseRole"></h1>
     <button class="rolebtn" data-role="rider"><b data-t="roleRider"></b><small data-t="roleRiderSub"></small></button>
     <button class="rolebtn" data-role="driver"><b data-t="roleDriver"></b><small data-t="roleDriverSub"></small></button>
-    <button class="rolebtn" data-role="admin"><b data-t="roleAdmin"></b><small data-t="roleAdminSub"></small></button>
   </div>
 </section>
 
@@ -277,7 +289,6 @@ body[data-role=driver] .rider-only{display:none}
     <button id="enBtn">English</button>
     <button id="urBtn">اردو</button>
   </div>
-  <button class="adstrip" id="adStrip"></button>
 </aside>
 <div class="toast" id="toast" role="status"></div>
 
@@ -285,9 +296,14 @@ body[data-role=driver] .rider-only{display:none}
 <script>
 /* ============ ترتیبات (یہاں سے کرایہ بدلیں) ============ */
 const VEHICLES = {
-  rickshaw: { base: 80,  perKm: 35, icon: 'rickshaw' },
-  chingchi: { base: 60,  perKm: 25, icon: 'chingchi' },
-  loader:   { base: 300, perKm: 70, icon: 'loader'   }
+  motorcycle:{ base:50,  perKm:20, icon:'motorcycle' },
+  rickshaw:  { base:80,  perKm:35, icon:'rickshaw' },
+  chingchi:  { base:60,  perKm:25, icon:'chingchi' },
+  car:       { base:150, perKm:45, icon:'car' },
+  van:       { base:300, perKm:65, icon:'van' },
+  pickup:    { base:250, perKm:60, icon:'pickup' },
+  loader:    { base:300, perKm:70, icon:'loader' },
+  bus:       { base:500, perKm:90, icon:'bus' }
 };
 const DEFAULT_CENTER = [31.5204, 74.3587]; // لاہور
 
@@ -312,10 +328,10 @@ const T = {
     taken:'یہ بکنگ کوئی اور لے چکا', driverFound:'ڈرائیور مل گیا', driverGuest:'ڈرائیور', finish:'سفر مکمل',
     faster:'تیز پک اپ', longer:'زیادہ انتظار', finding:'قریبی ڈرائیور تلاش ہو رہا ہے', raiseHint:'جلدی ڈرائیور ملنے کے لیے کرایہ بڑھائیں', raise:'کرایہ +20 بڑھائیں',
     offerSent:'آپ کی آفر بھیج دی گئی', sendOffer:'آفر بھیجیں', min:'منٹ', trips:'سفر', newDriver:'نیا ڈرائیور', yourName:'آپ کا نام',
-    advertise:'اشتہار دیں', advTitle:'اپنا اشتہار لگوانے کے لیے رابطہ کریں', advName:'آپ کا نام', advPhone:'فون نمبر', advMsg:'پیغام', advSend:'واٹس ایپ پر بھیجیں',
+    advertise:'ہمارے ساتھ اشتہار دیں', advTitle:'اپنا اشتہار لگوانے کے لیے رابطہ کریں', advName:'آپ کا نام', advPhone:'فون نمبر', advMsg:'پیغام', advSend:'واٹس ایپ پر بھیجیں',
     adminLogin:'ایڈمن', pin:'پن', enter:'داخل ہوں', wrongPin:'غلط پن', adLabel:'اشتہار کا متن', waLabel:'واٹس ایپ نمبر (92 سے شروع)', saveBtn:'محفوظ کریں', saved:'محفوظ ہو گیا',
     copyCfg:'config.json کاپی کریں', copied:'کاپی ہو گیا', adminNote:'سب کے فون پر تبدیلی دکھانے کے لیے "config.json کاپی کریں" دبا کر گٹ ہب کی config.json میں پیسٹ کریں۔',
-    statsBook:'کل بکنگز', statsDone:'مکمل سفر', netErr:'نیٹ ورک کا مسئلہ، دوبارہ کوشش کریں', yourPhone:'آپ کا واٹس ایپ نمبر (03xx…)', needPhone:'پہلے اپنا فون نمبر لکھیں', call:'کال', whatsapp:'واٹس ایپ'
+    statsBook:'کل بکنگز', statsDone:'مکمل سفر', netErr:'نیٹ ورک کا مسئلہ، دوبارہ کوشش کریں', yourPhone:'آپ کا واٹس ایپ نمبر (03xx…)', needPhone:'پہلے اپنا فون نمبر لکھیں', call:'کال', whatsapp:'واٹس ایپ', motorcycle:'موٹر سائیکل', car:'کار', van:'وین', bus:'بس', tracking:'ٹریکنگ', startTrip:'سفر شروع کریں', finishTrip:'سفر ختم کریں', goPickup:'سواری کی طرف روانہ', driverComing:'ڈرائیور آ رہا ہے', onTrip:'سفر جاری ہے', waitLoc:'ڈرائیور کی لوکیشن کا انتظار…', toPickup:'پک اپ تک', toDrop:'منزل تک', tripDone:'سفر مکمل ہو گیا', trackBtn:'ٹریک کریں', openMap:'نقشہ'
   },
   en: {
     myLocation:'My location', tapHint:'Tap the map or type a place to set the dropoff',
@@ -336,21 +352,17 @@ const T = {
     taken:'This booking was taken', driverFound:'Driver found', driverGuest:'Driver', finish:'Finish trip',
     faster:'faster pickup', longer:'longer wait', finding:'Finding the nearest driver', raiseHint:'Raise your fare to find a driver quicker', raise:'Raise fare +20',
     offerSent:'Your offer was sent', sendOffer:'Send offer', min:'min', trips:'trips', newDriver:'New driver', yourName:'Your name',
-    advertise:'Advertise', advTitle:'Contact us to place your advertisement', advName:'Your name', advPhone:'Phone number', advMsg:'Message', advSend:'Send on WhatsApp',
+    advertise:'Advertise with us', advTitle:'Contact us to place your advertisement', advName:'Your name', advPhone:'Phone number', advMsg:'Message', advSend:'Send on WhatsApp',
     adminLogin:'Admin', pin:'PIN', enter:'Enter', wrongPin:'Wrong PIN', adLabel:'Ad text', waLabel:'WhatsApp number (start with 92)', saveBtn:'Save', saved:'Saved',
     copyCfg:'Copy config.json', copied:'Copied', adminNote:'To show changes on everyone\'s phone, tap "Copy config.json" and paste it into config.json on GitHub.',
-    statsBook:'Total bookings', statsDone:'Completed trips', netErr:'Network problem, try again', yourPhone:'Your WhatsApp number (03xx…)', needPhone:'Enter your phone number first', call:'Call', whatsapp:'WhatsApp'
+    statsBook:'Total bookings', statsDone:'Completed trips', netErr:'Network problem, try again', yourPhone:'Your WhatsApp number (03xx…)', needPhone:'Enter your phone number first', call:'Call', whatsapp:'WhatsApp', motorcycle:'Motorcycle', car:'Car', van:'Van', bus:'Bus', tracking:'Tracking', startTrip:'Start journey', finishTrip:'Finish journey', goPickup:'Head to rider', driverComing:'Driver is coming', onTrip:'Journey in progress', waitLoc:'Waiting for driver location…', toPickup:'To pickup', toDrop:'To destination', tripDone:'Journey finished', trackBtn:'Track', openMap:'Map'
   }
 };
 let lang = localStorage.getItem('lang') || 'ur';
 const t = k => T[lang][k] || k;
 
 /* ============ سادہ آئیکن ============ */
-const ICONS = {
-  rickshaw:`<svg viewBox="0 0 64 44"><path d="M8 30V14l10-6h24l8 12v10z" fill="#F2B01E"/><rect x="14" y="14" width="18" height="10" fill="#fff" opacity=".7"/><circle cx="16" cy="34" r="6" fill="#222"/><circle cx="48" cy="34" r="6" fill="#222"/></svg>`,
-  chingchi:`<svg viewBox="0 0 64 44"><rect x="6" y="10" width="36" height="20" rx="4" fill="#1F8A4C"/><path d="M42 30V18h10l6 12z" fill="#12352B"/><rect x="10" y="14" width="26" height="8" fill="#fff" opacity=".7"/><circle cx="16" cy="34" r="6" fill="#222"/><circle cx="46" cy="34" r="6" fill="#222"/></svg>`,
-  loader:`<svg viewBox="0 0 64 44"><rect x="4" y="8" width="34" height="22" rx="2" fill="#7B4DE0"/><path d="M38 30V16h12l8 10v4z" fill="#12352B"/><circle cx="14" cy="34" r="6" fill="#222"/><circle cx="48" cy="34" r="6" fill="#222"/></svg>`
-};
+const ICONS = Object.fromEntries(['rickshaw','chingchi','loader','motorcycle','car','pickup','bus','van'].map(k=>[k,`<img class="vi" src="img/${k}.png" alt="">`]));
 
 /* ============ حالت ============ */
 let vehicle = 'rickshaw';
@@ -479,12 +491,12 @@ async function api(path, method='GET', body){
   const tx = await r.text(); return tx ? JSON.parse(tx) : null;
 }
 const mapB = r => ({ id:+r.id, vehicle:r.vehicle, from:r.from_name, to:r.to_name, fare:r.fare, km:+r.km||0, status:r.status, when:r.when_at||r.created_at,
-  accepted:r.accepted, driver:r.driver_name, driverId:r.driver_id, driverDone:r.driver_done, doneAt:r.done_at, riderId:r.rider_id, riderPhone:r.rider_phone, driverPhone:r.driver_phone, offers:[], rejected:[] });
+  accepted:r.accepted, driver:r.driver_name, driverId:r.driver_id, driverDone:r.driver_done, doneAt:r.done_at, riderId:r.rider_id, riderPhone:r.rider_phone, fromLat:r.from_lat, fromLng:r.from_lng, toLat:r.to_lat, toLng:r.to_lng, driverLat:r.driver_lat, driverLng:r.driver_lng, driverTs:r.driver_ts, driverPhone:r.driver_phone, offers:[], rejected:[] });
 async function pull(){
   try{
     const [bs,os] = await Promise.all([ api('/bookings?select=*&order=created_at.desc&limit=100'), api('/offers?select=*&order=created_at.asc&limit=500') ]);
     const m = new Map(); bookings = bs.map(r=>{ const b=mapB(r); m.set(b.id,b); return b; });
-    os.forEach(o=>{ const b=m.get(+o.booking_id); if(!b) return; b.offers.push({id:+o.id,did:o.driver_id,name:o.driver_name,fare:o.fare,eta:o.eta,trips:o.trips,phone:o.driver_phone}); if(o.rejected) b.rejected.push(+o.id); });
+    os.forEach(o=>{ const b=m.get(+o.booking_id); if(!b) return; b.offers.push({id:+o.id,did:o.driver_id,name:o.driver_name,fare:o.fare,eta:o.eta,trips:o.trips,phone:o.driver_phone}); if(o.rejected) b.rejected.push(+o.id); }); syncGps();
     return true;
   }catch(e){ console.warn(e); return false; }
 }
@@ -495,7 +507,7 @@ $('#book').onclick = async ()=>{
   const ph=$('#rPhone').value.trim(); if(ph.replace(/\D/g,'').length<10){ toast(t('needPhone')); return; } localStorage.setItem('rPhone',ph);
   const w=$('#whenIn').value, id=Date.now();
   $('#book').disabled=true;
-  const ok = await mut(()=>api('/bookings','POST',{ id, vehicle, from_name:pickup.name, to_name:drop.name, fare:offerFare||f.fare, km:+f.km.toFixed(2),
+  const ok = await mut(()=>api('/bookings','POST',{ id, vehicle, from_name:pickup.name, to_name:drop.name, from_lat:pickup.lat, from_lng:pickup.lng, to_lat:drop.lat, to_lng:drop.lng, fare:offerFare||f.fare, km:+f.km.toFixed(2),
     status: w?'scheduled':'searching', when_at: w?new Date(w).toISOString():new Date().toISOString(), rider_id:rid, rider_phone:ph }));
   updateFare();
   if(!ok) return;
@@ -505,10 +517,10 @@ $('#book').onclick = async ()=>{
 
 function renderBookings(){
   $$('#tabs button').forEach(b=> b.setAttribute('aria-selected', b.dataset.tab===tab));
-  const items = bookings.filter(b=>b.status===tab && b.riderId===rid);
+  const items = bookings.filter(b=>(tab==='progress' ? (b.status==='progress'||b.status==='ontrip') : b.status===tab) && b.riderId===rid);
   const box = $('#bkList');
   if(!items.length){
-    box.innerHTML = `<div class="empty">${ICONS.rickshaw.replace('<svg','<svg fill="gray"')}<p>${t('noBooking')}</p><button class="cta" data-go="home">${t('bookNow')}</button></div>`;
+    box.innerHTML = `<div class="empty"><img src="img/rickshaw.png" alt="" style="width:140px;border-radius:14px;filter:grayscale(1);opacity:.6"><p>${t('noBooking')}</p><button class="cta" data-go="home">${t('bookNow')}</button></div>`;
     return;
   }
   box.innerHTML = items.map(b=>`
@@ -518,10 +530,13 @@ function renderBookings(){
       <p>${new Date(b.when).toLocaleString(lang==='ur'?'ur-PK':'en-GB')}</p>
       ${b.accepted&&b.status!=='done'?`<p style="color:var(--leaf);font-weight:700">✓ ${t('driverFound')}${b.driver?': '+esc(b.driver):''}</p>`:''}
       ${b.accepted&&b.status!=='done'&&b.driverPhone?contactBtns(b.driverPhone):''}
-      ${b.status!=='done'?`<div class="acts"><button data-done="${b.id}">${t('complete')}</button><button class="x" data-del="${b.id}">${t('cancel')}</button></div>`:''}
+      ${b.status==='ontrip'?`<p style="color:var(--leaf);font-weight:700">${t('onTrip')}</p>`:''}
+      ${b.status==='progress'||b.status==='ontrip'?`<div class="acts"><button data-trk="${b.id}">${t('trackBtn')}</button></div>`:''}
+      ${b.status==='scheduled'||b.status==='progress'?`<div class="acts"><button class="x" data-del="${b.id}">${t('cancel')}</button></div>`:''}
     </div>`).join('');
   $$('[data-done]').forEach(x=> x.onclick=async()=>{ await mut(()=>api('/bookings?id=eq.'+x.dataset.done,'PATCH',{status:'done'})); renderBookings(); });
   $$('[data-del]').forEach(x=> x.onclick=async()=>{ await mut(()=>api('/bookings?id=eq.'+x.dataset.del,'DELETE')); renderBookings(); });
+  $$('[data-trk]').forEach(x=> x.onclick=()=>{ trackId=+x.dataset.trk; go('track'); });
 }
 const esc = s => String(s||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 $$('#tabs button').forEach(b=> b.onclick=()=>{ tab=b.dataset.tab; renderBookings(); });
@@ -535,7 +550,9 @@ function go(id){
   if(id==='bookings') renderBookings();
   if(id==='home') setTimeout(()=>map.invalidateSize(),50);
   if(id==='search') renderSearch();
-  if(id==='advertise'||id==='admin') renderAds();
+  if(id==='track') renderTrack();
+  if(id==='advertise') renderAds();
+  showAd();
 }
 document.addEventListener('click', e=>{ const g=e.target.closest('[data-go]'); if(g) go(g.dataset.go); });
 function openMenu(){ $('#drawer').classList.add('on'); $('#scrim').classList.add('on'); }
@@ -552,7 +569,6 @@ let did = localStorage.getItem('did') || Math.random().toString(36).slice(2); lo
 function reloadBookings(){}
 
 function setRole(r){
-  if(r==='admin'){ go('admin'); return; }
   role = r; localStorage.setItem('role', r);
   document.body.dataset.role = r;
   $('#whoAmI').textContent = r==='driver' ? t('driverGuest') : t('guest');
@@ -562,13 +578,18 @@ function setRole(r){
 $$('[data-role]').forEach(b=> b.onclick = ()=> setRole(b.dataset.role));
 function showRole(){ closeMenu(); $$('.screen').forEach(s=>s.classList.toggle('on', s.id==='role')); }
 $('#switchRole').onclick = showRole;
-$('#adminBack').onclick = ()=>{ adminOK=false; adminPin=''; showRole(); };
 $('#openMenu2').onclick = openMenu;
 $('#onlineBtn').onclick = ()=>{ online=!online; localStorage.setItem('online', online?'1':'0'); renderDriver(); };
 
 function tripCard(b, kind){
   const base = `<div class="bk"><div class="head"><span>${t(b.vehicle)}</span><span>Rs. ${b.fare}</span></div><p>${esc(b.from)} → ${esc(b.to)}</p><p>${b.km.toFixed(1)} ${t('km')}</p>`;
-  if(kind==='mine') return base+(b.riderPhone?contactBtns(b.riderPhone):'')+`<div class="acts"><button data-fin="${b.id}">${t('finish')}</button></div></div>`;
+  if(kind==='mine'){
+    const st=b.status;
+    const main = st==='scheduled' ? `<button data-gop="${b.id}">${t('goPickup')}</button>`
+      : st==='progress' ? `<button data-trk="${b.id}">${t('openMap')}</button><button data-start="${b.id}">${t('startTrip')}</button>`
+      : `<button data-trk="${b.id}">${t('openMap')}</button><button data-fin="${b.id}">${t('finishTrip')}</button>`;
+    return base+(b.riderPhone?contactBtns(b.riderPhone):'')+`<div class="acts">${main}</div></div>`;
+  }
   if(b.status==='scheduled') return base+`<p>${new Date(b.when).toLocaleString(lang==='ur'?'ur-PK':'en-GB')}</p><div class="acts"><button data-acc="${b.id}">${t('accept')}</button></div></div>`;
   const mo = (b.offers||[]).find(o=>o.did===did);
   if(mo) return base+`<p style="color:var(--leaf);font-weight:700">${t('offerSent')}: Rs. ${mo.fare}</p></div>`;
@@ -609,8 +630,11 @@ function renderDriver(){
     });
     renderDriver();
   });
+  $$('[data-gop]').forEach(x=> x.onclick=async()=>{ await mut(()=>api('/bookings?id=eq.'+x.dataset.gop,'PATCH',{status:'progress'})); renderDriver(); });
+  $$('[data-start]').forEach(x=> x.onclick=async()=>{ await mut(()=>api('/bookings?id=eq.'+x.dataset.start,'PATCH',{status:'ontrip', started_at:new Date().toISOString()})); renderDriver(); });
+  $$('[data-trk]').forEach(x=> x.onclick=()=>{ trackId=+x.dataset.trk; go('track'); });
   $$('[data-fin]').forEach(x=> x.onclick=async()=>{
-    await mut(()=>api('/bookings?id=eq.'+x.dataset.fin,'PATCH',{status:'done', driver_done:true, done_at:new Date().toISOString()}));
+    await mut(()=>api('/bookings?id=eq.'+x.dataset.fin,'PATCH',{status:'done', driver_done:true, done_at:new Date().toISOString(), driver_lat:null, driver_lng:null}));
     renderDriver();
   });
 }
@@ -621,7 +645,7 @@ $('#fDn').onclick=()=>{ if(offerFare!=null){ offerFare=Math.max(10,offerFare-10)
 const curBooking = ()=> bookings.find(b=>b.id===curId);
 function renderSearch(){
   const b=curBooking(); if(!b){ go('home'); return; }
-  if(b.accepted){ tab='progress'; toast(t('driverFound')+': '+(b.driver||'')); go('bookings'); return; }
+  if(b.accepted){ toast(t('driverFound')+': '+(b.driver||'')); if(b.status==='scheduled'){ tab='scheduled'; go('bookings'); } else { trackId=b.id; go('track'); } return; }
   $('#sFare').textContent='Rs. '+b.fare;
   const offs=(b.offers||[]).filter(o=>!(b.rejected||[]).includes(o.id));
   $('#offers').innerHTML = offs.map(o=>`<div class="offer"><div><b>${esc(o.name)}</b><br><small>${o.trips?o.trips+' '+t('trips'):t('newDriver')} · ${o.eta} ${t('min')}</small></div><strong>Rs. ${o.fare}</strong><button class="no" data-no="${o.id}" aria-label="reject">✕</button><button class="ok" data-ok="${o.id}" aria-label="accept">✓</button></div>`).join('');
@@ -639,50 +663,144 @@ $('#cancelSearch').onclick=async()=>{ const id=curId; await mut(()=>api('/bookin
 const CFG = { ad:'اپنا اشتہار یہاں لگوائیں', wa:'92300XXXXXXX' };
 async function loadCfg(){
   try{ const r = await api('/settings?id=eq.1&select=ad,wa'); if(r[0]){ CFG.ad=r[0].ad||CFG.ad; CFG.wa=r[0].wa||CFG.wa; } }catch(e){ console.warn(e); }
+  try{ ADS = await api('/ads?select=text,image_url,link&active=eq.true&order=sort.asc,created_at.desc'); }catch(e){ console.warn(e); }
   paint();
 }
-function paint(){
-  $('#adText').textContent = CFG.ad; $('#adStrip').textContent = CFG.ad + ' ›';
-  $('#adminGate').hidden = adminOK; $('#adminPanel').hidden = !adminOK;
-  $('#adCopy').hidden = true; const nt=document.querySelector('[data-t=adminNote]'); if(nt) nt.hidden = true;
-  if(adminOK){
-    if(document.activeElement!==$('#adInput')) $('#adInput').value = CFG.ad;
-    if(document.activeElement!==$('#waInput')) $('#waInput').value = CFG.wa;
-    $('#stats').textContent = `${t('statsBook')}: ${bookings.length} · ${t('statsDone')}: ${bookings.filter(b=>b.status==='done').length}`;
+let adList = [], adIdx = 0, ADS = [];
+function parseAds(){
+  const root = SB.replace('/rest/v1','') + '/storage/v1/object/public/ads/';
+  if(ADS.length){
+    adList = ADS.map(a=>({ txt:a.text||'', img:(a.image_url&&a.image_url.startsWith(root))?a.image_url:'', link:a.link||'' })).filter(a=>a.txt||a.img);
+    return;
   }
+  adList = String(CFG.ad||'').split('\n').map(s=>s.trim()).filter(Boolean).map(s=>{ const [txt,link]=s.split('|').map(x=>(x||'').trim()); return {txt,img:'',link}; });
 }
+const hasActiveTrip = ()=> bookings.some(b=>b.riderId===rid && (b.status==='progress'||b.status==='ontrip'));
+function showAd(){
+  const bar=$('#adBar'); if(!bar) return;
+  const on = role!=='driver' && $('#home').classList.contains('on') && adList.length>0 && !hasActiveTrip();
+  bar.hidden = !on; if(!on) return;
+  const a=adList[adIdx % adList.length]; $('#adTxt').textContent = a.txt;
+  const im=$('#adImg'); if(a.img){ im.src=a.img; im.hidden=false; } else { im.hidden=true; im.removeAttribute('src'); }
+  bar.classList.toggle('img', !!a.img);
+  bar.classList.remove('swap'); void bar.offsetWidth; bar.classList.add('swap');
+}
+function paint(){
+  parseAds();
+  $('#adText').textContent = adList.map(a=>a.txt).join(' · ');
+  $('#advContact').innerHTML = contactBtns(CFG.wa);
+  showAd();
+}
+setInterval(()=>{ adIdx++; showAd(); }, 6000);
 function renderAds(){ paint(); loadCfg(); }
-$('#adStrip').onclick = ()=> go('advertise');
-$('#toAdmin').onclick = e=>{ e.preventDefault(); go('admin'); };
+$('#adBar').onclick = ()=>{
+  const a = adList[adIdx % adList.length];
+  if(a && /^https?:\/\//i.test(a.link||'')) window.open(a.link,'_blank','noopener'); else go('advertise');
+};
 $('#advSend').onclick = ()=>{
   const msg = `${t('advertise')}\n${t('advName')}: ${$('#advName').value}\n${t('advPhone')}: ${$('#advPhone').value}\n${$('#advMsg').value}`;
   window.open('https://wa.me/'+CFG.wa+'?text='+encodeURIComponent(msg),'_blank');
-};
-$('#pinBtn').onclick = async ()=>{
-  try{ const ok = await api('/rpc/check_admin','POST',{p_pin:$('#pinIn').value});
-    if(ok===true){ adminOK=true; adminPin=$('#pinIn').value; $('#pinIn').value=''; paint(); } else toast(t('wrongPin')); }
-  catch(e){ toast(t('netErr')); }
-};
-$('#adSave').onclick = async ()=>{
-  const ad=$('#adInput').value.trim()||CFG.ad, wa=$('#waInput').value.replace(/\D/g,'')||CFG.wa;
-  try{ const ok = await api('/rpc/set_settings','POST',{p_pin:adminPin,p_ad:ad,p_wa:wa});
-    if(ok===true){ CFG.ad=ad; CFG.wa=wa; paint(); toast(t('saved')); } else toast(t('wrongPin')); }
-  catch(e){ toast(t('netErr')); }
 };
 $('#dNameIn').value = dName;
 $('#dNameIn').oninput = e=>{ dName=e.target.value; localStorage.setItem('dName',dName); };
 $('#dPhoneIn').value = dPhone; $('#dPhoneIn').oninput = e=>{ dPhone=e.target.value; localStorage.setItem('dPhone',dPhone); };
 $('#rPhone').value = localStorage.getItem('rPhone') || '';
 
+/* ============ ٹریکنگ ============ */
+let trackId = null, gpsId = null, lastPush = 0, wl = null, myPos = null, tmap = null, tLayers = {}, lastFit = '';
+const activeTrip = ()=> bookings.find(b=>b.driverId===did && (b.status==='progress'||b.status==='ontrip'));
+function syncGps(){
+  const need = role==='driver' && !!activeTrip();
+  if(need && gpsId===null && navigator.geolocation){
+    gpsId = navigator.geolocation.watchPosition(onPos, ()=>{}, {enableHighAccuracy:true, maximumAge:2000, timeout:20000});
+    if(navigator.wakeLock) navigator.wakeLock.request('screen').then(l=>wl=l).catch(()=>{});
+  } else if(!need && gpsId!==null){
+    navigator.geolocation.clearWatch(gpsId); gpsId=null; myPos=null;
+    if(wl){ wl.release().catch(()=>{}); wl=null; }
+  }
+}
+function onPos(p){
+  myPos = { lat:p.coords.latitude, lng:p.coords.longitude };
+  const tr = activeTrip(); if(!tr) return;
+  if(Date.now()-lastPush >= 4000){
+    lastPush = Date.now();
+    api('/bookings?id=eq.'+tr.id,'PATCH',{driver_lat:myPos.lat, driver_lng:myPos.lng, driver_ts:new Date().toISOString()}).catch(()=>{});
+  }
+  if($('#track').classList.contains('on')) renderTrack();
+}
+document.addEventListener('visibilitychange', ()=>{
+  if(!document.hidden && gpsId!==null && navigator.wakeLock) navigator.wakeLock.request('screen').then(l=>wl=l).catch(()=>{});
+});
+
+function vIcon(v){ return L.divIcon({className:'vmark', html:`<img src="img/${v}.png" alt="">`, iconSize:[48,36], iconAnchor:[24,18]}); }
+function ensureTmap(){
+  if(!tmap){
+    tmap = L.map('tmap',{zoomControl:false}).setView(DEFAULT_CENTER, 14);
+    L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'© OpenStreetMap'}).addTo(tmap);
+  }
+  setTimeout(()=>tmap.invalidateSize(),50);
+}
+function setLayer(key, make, pos){
+  if(!pos){ if(tLayers[key]){ tmap.removeLayer(tLayers[key]); delete tLayers[key]; } return; }
+  if(tLayers[key]) tLayers[key].setLatLng([pos.lat,pos.lng]); else tLayers[key] = make().addTo(tmap);
+}
+function renderTrack(){
+  const b = bookings.find(x=>x.id===trackId);
+  const isDriver = role==='driver';
+  if(!b){ go(isDriver?'driver':'bookings'); return; }
+  if(b.status==='done'){
+    toast(t('tripDone')+' · Rs. '+b.fare); trackId=null;
+    if(isDriver) go('driver'); else { tab='done'; go('bookings'); }
+    return;
+  }
+  ensureTmap();
+  const pick = b.fromLat!=null ? {lat:b.fromLat,lng:b.fromLng} : null;
+  const dest = b.toLat!=null ? {lat:b.toLat,lng:b.toLng} : null;
+  const who = isDriver ? myPos : (b.driverLat!=null ? {lat:b.driverLat,lng:b.driverLng} : null);
+  const fresh = isDriver || (b.driverTs && Date.now()-new Date(b.driverTs).getTime() < 60000);
+  setLayer('pick', ()=>L.circleMarker([0,0],{radius:9,color:'#fff',weight:3,fillColor:'#1F8A4C',fillOpacity:1}), pick);
+  setLayer('dest', ()=>L.circleMarker([0,0],{radius:9,color:'#fff',weight:3,fillColor:'#7B4DE0',fillOpacity:1}), dest);
+  setLayer('who', ()=>L.marker([0,0],{icon:vIcon(b.vehicle)}), who);
+  const target = b.status==='ontrip' ? dest : pick;
+  if(tLayers.line){ tmap.removeLayer(tLayers.line); delete tLayers.line; }
+  if(who && target) tLayers.line = L.polyline([[who.lat,who.lng],[target.lat,target.lng]],{color:'#12352B',weight:4,dashArray:'6 8'}).addTo(tmap);
+  const fk = b.id+'|'+b.status+'|'+(who?1:0);
+  if(fk!==lastFit){
+    lastFit = fk;
+    const pts = [pick,dest,who].filter(Boolean).map(p=>[p.lat,p.lng]);
+    if(pts.length>1) tmap.fitBounds(pts,{padding:[50,50]}); else if(pts.length) tmap.setView(pts[0],15);
+  }
+  let info = b.status==='ontrip' ? t('onTrip') : (isDriver ? t('toPickup') : t('driverComing'));
+  if(who && target && fresh){
+    const d = dist(who,target);
+    info += ` · ${d.toFixed(1)} ${t('km')} · ~${Math.max(1,Math.ceil(d/25*60))} ${t('min')}`;
+  } else if(!isDriver && b.status==='progress') info += ' · ' + t('waitLoc');
+  $('#tInfo').textContent = info;
+  const ph = isDriver ? b.riderPhone : b.driverPhone;
+  $('#tContact').innerHTML = (!isDriver && b.driver ? `<p>${esc(b.driver)}</p>` : '') + (ph ? contactBtns(ph) : '');
+  const btn = $('#tAction');
+  btn.hidden = !isDriver;
+  if(isDriver) btn.textContent = b.status==='ontrip' ? t('finishTrip') : t('startTrip');
+  btn.onclick = async ()=>{
+    const patch = b.status==='ontrip'
+      ? {status:'done', driver_done:true, done_at:new Date().toISOString(), driver_lat:null, driver_lng:null}
+      : {status:'ontrip', started_at:new Date().toISOString()};
+    await mut(()=>api('/bookings?id=eq.'+b.id,'PATCH',patch));
+    renderTrack();
+  };
+}
+$('#trackBack').onclick = ()=>{ if(role==='driver') go('driver'); else { tab='progress'; go('bookings'); } };
+
 /* ہر چند سیکنڈ میں سرور سے تازہ ڈیٹا */
 let lastSig = '';
 async function tick(){
   if(document.hidden) return;
   if(!await pull()) return;
-  const sig = JSON.stringify(bookings); if(sig===lastSig) return; lastSig = sig;
+  const sig = JSON.stringify(bookings); if(sig===lastSig) return; lastSig = sig; showAd();
   if($('#driver').classList.contains('on')) renderDriver();
   if($('#bookings').classList.contains('on')) renderBookings();
   if($('#search').classList.contains('on')) renderSearch();
+  if($('#track').classList.contains('on')) renderTrack();
 }
 setInterval(tick, 2500); tick(); loadCfg();
 
